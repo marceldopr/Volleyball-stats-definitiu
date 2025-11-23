@@ -27,9 +27,11 @@ interface LiveMatchScoutingProps {
   onUpdateMatch: (id: string, updates: Partial<Match>) => void
   onNavigateToMatches: () => void
   onNavigateToWizardStep?: (step: number) => void
+  teamName?: string
+  seasonName?: string
 }
 
-export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, onNavigateToWizardStep }: LiveMatchScoutingProps) {
+export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, onNavigateToWizardStep, teamName = 'Mi Equipo', seasonName }: LiveMatchScoutingProps) {
   const [homeScore, setHomeScore] = useState(0)
   const [awayScore, setAwayScore] = useState(0)
   const [estadoSaque, setEstadoSaque] = useState<'myTeamServing' | 'myTeamReceiving' | null>(null)
@@ -47,7 +49,7 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
     awayScore: number
     winner: 'local' | 'visitor'
   } | null>(null)
-  // NUEVO: Estado para el popup de selecciÃ³n de jugadora
+  // NUEVO: Estado para el popup de selección de jugadora
   const [showPlayerSelection, setShowPlayerSelection] = useState(false)
   const [pendingAction, setPendingAction] = useState<{
     action: string
@@ -55,26 +57,26 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
     changeServeState?: boolean
     isServeAction?: boolean
   } | null>(null)
-  // NUEVO: Estado para el popup de recepciÃ³n
+  // NUEVO: Estado para el popup de recepción
   const [showReceptionPopup, setShowReceptionPopup] = useState(false)
-  // NUEVO: Bandera para controlar si ya se ha registrado recepciÃ³n en este rally
+  // NUEVO: Bandera para controlar si ya se ha registrado recepción en este rally
   const [hasReceptionThisRally, setHasReceptionThisRally] = useState(false)
   // NUEVO: Estado para tracking del estado de saque anterior
   const [previousServeState, setPreviousServeState] = useState<'myTeamServing' | 'myTeamReceiving' | null>(null)
-  // NUEVO: Bandera para saltar el siguiente popup de recepciÃ³n despuÃ©s de deshacer
+  // NUEVO: Bandera para saltar el siguiente popup de recepción después de deshacer
   const [skipNextReceptionPopup, setSkipNextReceptionPopup] = useState(false)
-  // NUEVO: Estado para controlar si debe mostrarse el popup de recepciÃ³n inicial
+  // NUEVO: Estado para controlar si debe mostrarse el popup de recepción inicial
   const [shouldShowInitialReceptionPopup, setShouldShowInitialReceptionPopup] = useState(false)
-  // NUEVO: Estado para controlar si venimos del popup de recepciÃ³n
+  // NUEVO: Estado para controlar si venimos del popup de recepción
   const [cameFromReception, setCameFromReception] = useState(false)
   // NUEVO: Estado para panel de debug
 
-  // NUEVO: Estado para el popup de sustituciÃ³n
+  // NUEVO: Estado para el popup de sustitución
   const [showSubstitutionPopup, setShowSubstitutionPopup] = useState(false)
 
-  // NUEVO: Efecto Ãºnico y simplificado para controlar el popup de recepciÃ³n
+  // NUEVO: Efecto único y simplificado para controlar el popup de recepción
   useEffect(() => {
-    // Controlar cuando necesitamos recepciÃ³n
+    // Controlar cuando necesitamos recepción
     if (
       !showSetCompleteModal && !pendingSetCompletion &&
       estadoSaque === 'myTeamReceiving' &&
@@ -83,7 +85,7 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
     ) {
       setShouldShowInitialReceptionPopup(true)
     } else if (estadoSaque === 'myTeamServing' && shouldShowInitialReceptionPopup) {
-      // Invariante: si mi equipo estÃ¡ sacando, el popup debe estar cerrado y flags reseteadas
+      // Invariante: si mi equipo está sacando, el popup debe estar cerrado y flags reseteadas
       setShouldShowInitialReceptionPopup(false)
       if (showReceptionPopup) setShowReceptionPopup(false)
       if (hasReceptionThisRally) setHasReceptionThisRally(false)
@@ -93,14 +95,14 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
     if (estadoSaque !== previousServeState) {
       setHasReceptionThisRally(false)
 
-      // Si pasamos de sacar a recibir, necesitaremos recepciÃ³n
+      // Si pasamos de sacar a recibir, necesitaremos recepción
       if (
         !showSetCompleteModal && !pendingSetCompletion &&
         previousServeState === 'myTeamServing' && estadoSaque === 'myTeamReceiving'
       ) {
         setShouldShowInitialReceptionPopup(true)
       }
-      // Si pasamos de recibir a sacar, no necesitamos recepciÃ³n
+      // Si pasamos de recibir a sacar, no necesitamos recepción
       else if (previousServeState === 'myTeamReceiving' && estadoSaque === 'myTeamServing') {
         // Invariante: cerramos y reseteamos cuando pasamos a sacar
         setShouldShowInitialReceptionPopup(false)
@@ -111,7 +113,7 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
       setPreviousServeState(estadoSaque)
     }
 
-    // Mostrar popup de recepciÃ³n cuando sea necesario
+    // Mostrar popup de recepción cuando sea necesario
     if (
       !showSetCompleteModal && !pendingSetCompletion &&
       shouldShowInitialReceptionPopup &&
@@ -125,12 +127,12 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
       setShowReceptionPopup(true)
     }
 
-    // SincronizaciÃ³n: si no debe mostrarse, asegurar que el popup estÃ© cerrado
+    // Sincronización: si no debe mostrarse, asegurar que el popup esté cerrado
     if (!shouldShowInitialReceptionPopup && showReceptionPopup) {
       setShowReceptionPopup(false)
     }
 
-    // Reset del flag skip despuÃ©s de un ciclo
+    // Reset del flag skip después de un ciclo
     if (skipNextReceptionPopup) {
       const timer = setTimeout(() => {
         setSkipNextReceptionPopup(false)
@@ -141,16 +143,16 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
 
   // NUEVO: Reset hasReceptionThisRally when serve state changes (new rally starts)
   useEffect(() => {
-    // Solo resetear hasReceptionThisRally si realmente cambiÃ³ el estado de saque
+    // Solo resetear hasReceptionThisRally si realmente cambió el estado de saque
     if (estadoSaque !== previousServeState) {
       setHasReceptionThisRally(false)
       setPreviousServeState(estadoSaque)
     }
   }, [estadoSaque, previousServeState])
 
-  // NUEVO: FunciÃ³n para manejar el deshacer desde el popup de recepciÃ³n
+  // NUEVO: Función para manejar el deshacer desde el popup de recepción
   const handleReceptionUndo = () => {
-    // Ejecutar la lÃ³gica de deshacer
+    // Ejecutar la lógica de deshacer
     handleUndo()
 
     // Cerrar el popup y resetear flags
@@ -159,7 +161,7 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
     setHasReceptionThisRally(false)
   }
 
-  // NUEVO: FunciÃ³n para obtener datos de debug
+  // NUEVO: Función para obtener datos de debug
   const getDebugData = () => {
     // Reglas estrictas: miEquipo es fijo, el otro equipo es siempre el contrario
     const miEquipo = match.teamSide // 'local' o 'visitante', se fija al inicio del partido
@@ -199,29 +201,29 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
     }
   }
 
-  // NUEVO: FunciÃ³n para logging de deshacer
+  // NUEVO: Función para logging de deshacer
   const logUndoAction = (tipo: 'antes' | 'despues') => {
     const debugData = getDebugData()
     console.log(`=== DEBUG DESHACER - ${tipo.toUpperCase()} ===`)
     console.log('Marcador:', debugData.marcador)
     console.log('Set actual:', debugData.setActual)
-    console.log('Ãšltimas 3 acciones:', debugData.ultimas5Acciones.slice(-3))
+    console.log('Últimas 3 acciones:', debugData.ultimas5Acciones.slice(-3))
     console.log('Stack deshacer length:', debugData.stackDeshacerLength)
     console.log('Puede rehacer:', debugData.puedeRehacer)
     console.log('Historial rehacer length:', debugData.historialRehacerLength)
     console.log('Modo mi equipo sacando:', debugData.modoMiEquipoSacando)
     console.log('Modo mi equipo recibiendo:', debugData.modoMiEquipoRecibiendo)
-    console.log('Debe mostrar popup recepciÃ³n inicial:', debugData.debeMostrarPopupRecepcionInicial)
-    console.log('Popup recepciÃ³n abierto:', debugData.popupRecepcionAbierto)
+    console.log('Debe mostrar popup recepción inicial:', debugData.debeMostrarPopupRecepcionInicial)
+    console.log('Popup recepción abierto:', debugData.popupRecepcionAbierto)
     console.log('Puede deshacer:', debugData.puedeDeshacer)
     console.log('========================================')
   }
 
-  // NUEVO: FunciÃ³n helper para obtener descripciÃ³n de la Ãºltima acciÃ³n
+  // NUEVO: Función helper para obtener descripción de la última acción
   const getLastActionDescription = (): string | null => {
     if (!match.timeline || match.timeline.length === 0) return null
 
-    // Buscar el Ãºltimo evento del set actual
+    // Buscar el último evento del set actual
     const lastEventIndex = [...match.timeline].reverse().findIndex(
       e => (e.type === 'rally' || e.type === 'substitution') && e.set === match.currentSet
     )
@@ -237,9 +239,9 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
       const playerIn = match.players.find(p => p.playerId === lastEvent.substitution!.playerInId)
 
       if (playerOut && playerIn) {
-        return `SustituciÃ³n: #${playerOut.number} ${playerOut.name.split(' ')[0]} â†” #${playerIn.number} ${playerIn.name.split(' ')[0]}`
+        return `Sustitución: #${playerOut.number} ${playerOut.name.split(' ')[0]} ↔ #${playerIn.number} ${playerIn.name.split(' ')[0]}`
       }
-      return 'SustituciÃ³n'
+      return 'Sustitución'
     }
 
     // Manejar rallies (puntos y errores)
@@ -248,7 +250,7 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
       const player = rally.jugadoraId ? match.players.find(p => p.playerId === rally.jugadoraId) : null
       const playerInfo = player ? `#${player.number} ${player.name.split(' ')[0]}` : ''
 
-      // Mapeo de tipos de acciÃ³n a descripciones legibles
+      // Mapeo de tipos de acción a descripciones legibles
       const actionDescriptions: Record<string, string> = {
         'punto_saque': `Punto SAQUE ${playerInfo}`,
         'error_saque': `Error SAQUE ${playerInfo}`,
@@ -258,7 +260,7 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
         'punto_bloqueo': `Punto BLQ ${playerInfo}`,
         'error_bloqueo': `Error BLQ ${playerInfo}`,
         'error_recepcion': `Error REC ${playerInfo}`,
-        'recepcion': `RecepciÃ³n ${playerInfo}`,
+        'recepcion': `Recepción ${playerInfo}`,
         'error_generico': 'Error propio',
         'error_rival': 'Error rival',
         'punto_rival': 'Punto rival'
@@ -327,10 +329,8 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
     return displayRotation
   }
 
-  // Get team name from store
-  const { teams } = useTeamStore()
-  const myTeam = teams.find(team => team.id === match.teamId)
-  const myTeamName = myTeam?.name || 'Mi Equipo'
+  // Get team name from props
+  const myTeamName = teamName
 
   // Local team ALWAYS on left, visitor ALWAYS on right
   const localTeamName = isHomeTeam ? myTeamName : match.opponent
@@ -1398,18 +1398,26 @@ export function LiveMatchScouting({ match, onUpdateMatch, onNavigateToMatches, o
       {/* Header & Scoreboard Section */}
       <div className="bg-gray-800 pb-6 pt-2 rounded-b-3xl shadow-lg mb-6">
         {/* Top Bar: Teams & Set */}
-        <div className="flex items-center w-full px-4 mb-4">
-          <span className="flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider truncate text-left overflow-hidden whitespace-nowrap">
-            {localTeamName}
-          </span>
+        {/* Top Bar: Teams & Set */}
+        <div className="flex flex-col w-full px-4 mb-4">
+          {seasonName && (
+            <div className="text-center text-[10px] text-gray-500 uppercase tracking-widest mb-2">
+              Temporada {seasonName}
+            </div>
+          )}
+          <div className="flex items-center w-full">
+            <span className="flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider truncate text-left overflow-hidden whitespace-nowrap">
+              {localTeamName}
+            </span>
 
-          <div className="mx-2 px-4 py-1 rounded-full bg-white text-[11px] font-semibold text-gray-900 uppercase tracking-widest shadow-sm">
-            SET {match.currentSet}
+            <div className="mx-2 px-4 py-1 rounded-full bg-white text-[11px] font-semibold text-gray-900 uppercase tracking-widest shadow-sm">
+              SET {match.currentSet}
+            </div>
+
+            <span className="flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider truncate text-right overflow-hidden whitespace-nowrap">
+              {visitorTeamName}
+            </span>
           </div>
-
-          <span className="flex-1 text-xs font-medium text-gray-400 uppercase tracking-wider truncate text-right overflow-hidden whitespace-nowrap">
-            {visitorTeamName}
-          </span>
         </div>
 
         {/* Main Scoreboard */}

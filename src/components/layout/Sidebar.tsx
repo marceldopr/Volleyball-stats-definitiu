@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home,
   Users,
@@ -8,24 +8,48 @@ import {
   Download,
   Info,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react'
 import { useState } from 'react'
 import { clsx } from 'clsx'
+import { useAuthStore } from '@/stores/authStore'
 
-const navigation = [
+// Full navigation for director_tecnic
+const fullNavigation = [
   { name: 'Home', href: '/', icon: Home },
+  { name: 'Jugadoras', href: '/players', icon: Users },
   { name: 'Equipos', href: '/teams', icon: Users },
   { name: 'Partidos', href: '/matches', icon: Trophy },
   { name: 'Análisis', href: '/analytics', icon: BarChart3 },
-  { name: 'Configuración', href: '/settings', icon: Settings },
   { name: 'Exportaciones', href: '/exports', icon: Download },
+  { name: 'Configuración', href: '/settings', icon: Settings },
+  { name: 'Sobre la App', href: '/about', icon: Info },
+]
+
+// Reduced navigation for entrenador
+const reducedNavigation = [
+  { name: 'Home', href: '/', icon: Home },
+  { name: 'Jugadoras', href: '/players', icon: Users },
+  { name: 'Equipos', href: '/teams', icon: Users },
+  { name: 'Partidos', href: '/matches', icon: Trophy },
+  { name: 'Configuración', href: '/settings', icon: Settings },
   { name: 'Sobre la App', href: '/about', icon: Info },
 ]
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { profile, logout } = useAuthStore()
+
+  // Determine navigation based on role
+  const navigation = profile?.role === 'entrenador' ? reducedNavigation : fullNavigation
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <>
@@ -54,8 +78,18 @@ export function Sidebar() {
           <p className="text-gray-400 text-xs mt-1">Pro Analytics</p>
         </div>
 
+        {/* User info */}
+        {profile && (
+          <div className="px-4 py-3 border-b border-gray-800">
+            <p className="text-white text-sm font-medium truncate">{profile.full_name}</p>
+            <p className="text-gray-400 text-xs capitalize">
+              {profile.role === 'director_tecnic' ? 'Director Técnico' : 'Entrenador'}
+            </p>
+          </div>
+        )}
+
         {/* Navigation */}
-        <nav className="mt-6 px-3">
+        <nav className="mt-6 px-3 flex-1 overflow-y-auto">
           <ul className="space-y-1">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href
@@ -78,9 +112,16 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
-          <div className="text-center">
+        {/* Logout button */}
+        <div className="p-4 border-t border-gray-800">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-red-400 hover:bg-red-950/30 hover:text-red-300 rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Cerrar sesión</span>
+          </button>
+          <div className="text-center mt-3">
             <p className="text-gray-500 text-xs">v1.0.0</p>
           </div>
         </div>

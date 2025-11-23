@@ -32,6 +32,7 @@ export interface Match {
   status: 'upcoming' | 'live' | 'completed'
   result?: string
   teamId: string
+  seasonId: string // NUEVO: ID de la temporada
   teamSide: 'local' | 'visitante'
   sets: Set[]
   players: MatchPlayer[]
@@ -407,6 +408,23 @@ export const useMatchStore = create<MatchState>()(
         }))
       },
 
+      updateLiberoOnCourt: (matchId, setNumber, liberoId) => {
+        set((state) => ({
+          matches: state.matches.map((match) =>
+            match.id === matchId
+              ? {
+                ...match,
+                liberoOnCourtBySet: {
+                  ...match.liberoOnCourtBySet,
+                  [setNumber]: liberoId
+                },
+                updatedAt: new Date().toISOString()
+              }
+              : match
+          ),
+        }))
+      },
+
       addAction: (matchId, action) => {
         set((state) => ({
           matches: state.matches.map((match) =>
@@ -428,23 +446,6 @@ export const useMatchStore = create<MatchState>()(
               ? {
                 ...match,
                 acciones: match.acciones.slice(0, -1),
-                updatedAt: new Date().toISOString()
-              }
-              : match
-          ),
-        }))
-      },
-
-      updateLiberoOnCourt: (matchId, setNumber, liberoId) => {
-        set((state) => ({
-          matches: state.matches.map((match) =>
-            match.id === matchId
-              ? {
-                ...match,
-                liberoOnCourtBySet: {
-                  ...match.liberoOnCourtBySet,
-                  [setNumber]: liberoId
-                },
                 updatedAt: new Date().toISOString()
               }
               : match
