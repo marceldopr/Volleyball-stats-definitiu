@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Users, X, Calendar } from 'lucide-react'
+import { Plus, Edit, Trash2, Users, X, Calendar, UserPlus } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { getCurrentSeasonByClub, createSeason, SeasonDB } from '@/services/seasonService'
 import { getTeamsByClubAndSeason, createTeam, updateTeam, deleteTeam, TeamDB } from '@/services/teamService'
+import { TeamRosterManager } from '@/components/teams/TeamRosterManager'
 
 const CATEGORIES = ['Infantil', 'Cadete', 'Juvenil', 'Senior']
 const GENDERS = [
@@ -29,6 +30,8 @@ export function Teams() {
     competition_level: '',
     notes: '',
   })
+  // Roster management state
+  const [selectedTeam, setSelectedTeam] = useState<TeamDB | null>(null)
 
   // Load current season and teams
   useEffect(() => {
@@ -295,6 +298,13 @@ export function Teams() {
                 )}
 
                 <div className="mt-auto space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                  <button
+                    onClick={() => setSelectedTeam(team)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Gestionar plantilla
+                  </button>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleOpenModal(team)}
@@ -437,6 +447,14 @@ export function Teams() {
             </div>
           </div>
         </div>
+      )}
+      {/* Team Roster Manager */}
+      {selectedTeam && currentSeason && (
+        <TeamRosterManager
+          team={selectedTeam}
+          season={currentSeason}
+          onClose={() => setSelectedTeam(null)}
+        />
       )}
     </div>
   )
